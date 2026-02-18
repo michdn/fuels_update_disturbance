@@ -1,16 +1,26 @@
 # LANDFIRE Total Fuel Change Tool Master_CMB table
 #  split out by zone
 
+# Previous to this script the Master_CMB table from the
+#  MS Access LFTFCT ruleset database must have been extracted: 
+# 1. Open .mdb in MS Access
+# 2. Right-click each table name (e.g. Master_CMB) and Export
+# 3. Pick text file, delimited, comma, and INCLUDE headers on first row
+# 4. It will save as a .txt. Manually change to .csv afterwards. 
+
 
 ### Packages & Function -------------------------------
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(
-  tidyverse)
+  tidyverse, 
+  stringr)
 
 source(file.path("scripts", "common_vars_functions.R"))
 
 ### User settings -----------------------------------
+
+source(file.path("scripts", "0_parameters", "2026_WRME_LF2024_updt2025.R"))
 
 prefix <- paste0("LF", version_target, "_") 
 
@@ -47,6 +57,8 @@ cmb
 ### Parse out each zone --------------------------------
 
 zonelist <- cmb %>% pull("Zone") %>% unique() %>% sort()
+#Note: could have used `zones` from common_vars_functions.R but
+# Master_CMB has zones from everywhere not just CONUS
 
 for (i in seq_along(zonelist)){
 
