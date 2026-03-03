@@ -2,7 +2,7 @@
 
 # 1. Encodes/Reclassifies FVH, FVT, FVC with short encoding ID
 #    Also reclassifies -9999 to NA
-# 2. Removes -1111, -9999 from FBFM40, <??????> variables
+# 2. Removes -1111, -9999 from FBFM40, canopy variables
 # 3. BPS: Removes -9999, recodes -1111 to 8888
 #         Extends BPS to later LF release extents
 
@@ -123,7 +123,10 @@ file_fbfm40 <- list.files(
   full.names = TRUE)
 fbfm <- rast(file_fbfm40)
 
-fbfm[fbfm<0] <- NA 
+#Make -1111 and -9999 into NAs
+fbfm <- mask(fbfm, fbfm, 
+             maskvalues = c(-1111, -9999),
+             updatevalue = NA)
 
 writeRaster(fbfm, 
             file.path(folder_lfproc,
@@ -133,15 +136,42 @@ writeRaster(fbfm,
 
 ## Canopy fuels -----------------------------------------------------
 
-#TODO
+#Use to apply rather than manual each time. 
+# TODO: Could combine with FBFM40 if wanted, but would need to manage names differently
+# ~1.6 hours (Chrome up, nothing else running)
+canopy_vars <- c("CBD", "CBH", "CC", "CH")
 
-
-
-
-
-
-
-
+process_canopy <- function(c_var){
+  
+  this_file <- list.files(
+    path = folder_lfdata_base,
+    pattern = paste0("^LF", version_target, "_", 
+                     c_var, 
+                     "_CONUS\\.tif$"),
+    recursive = TRUE, 
+    full.names = TRUE)
+  
+  this_rast <- rast(this_file)
+  
+  #Make -1111 and -9999 into NAs
+  this_rast <- mask(this_rast, this_rast, 
+                    maskvalues = c(-1111, -9999),
+                    updatevalue = NA)
+  
+  
+  writeRaster(this_rast, 
+              file.path(folder_lfproc,
+                        paste0("LF", version_target, "_", 
+                               tolower(c_var), 
+                               ".tif")),
+              gdal=c("COMPRESS=DEFLATE"))
+  
+}
+(start_time <- Sys.time())
+#process each canopy variable
+lapply(canopy_vars, process_canopy)
+(end_time <- Sys.time())
+(end_time - start_time)
 
 ## BPS LF 2020 -----------------------------------------------------
 
