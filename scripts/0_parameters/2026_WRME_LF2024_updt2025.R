@@ -27,5 +27,7 @@ version_bps <- "2020"
 #  or anywhere else that would produce DIST codes
 # MUST BE in the same projection, and have the same extent and origin
 #  as the LF version_target above. 
-dist_file <- file.path("")
+dist_file <- file.path(
+  "data", "output", "wrme2025_v1", "disturbance", 
+  "LDist_2025_dist_coded.tif")
 
