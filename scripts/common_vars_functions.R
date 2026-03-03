@@ -23,9 +23,9 @@ folder_lfrules_base <- file.path("data", "lf_ruleset")
 folder_xwalk <- file.path("data", "crosswalks")
 dir.create(folder_xwalk, recursive = TRUE, showWarnings = FALSE)
 
-#base folder for output updated fuels
-folder_fuels_base <- file.path("data", "fuels")
-dir.create(folder_fuels_base, recursive = TRUE, showWarnings = FALSE)
+#base folder for output updated fuels and others
+folder_out_base <- file.path("data", "output")
+dir.create(folder_out_base, recursive = TRUE, showWarnings = FALSE)
 
 ## Variables --------------------------------
 
