@@ -132,7 +132,6 @@ r_coded <- rast(file.path("data", "test_data", "r_coded_flt8s.tif"))
 
 # Rather than masking each zone inside the loop. 
 #where no disturbance, NA, otherwise encoded value
-##coded_dist <- ifel(dist==0, NA, r_coded)
 #mask (17 min) is much faster than ifel (50 min)
 coded_dist <- mask(r_coded, dist, maskvalues=0, inverse=FALSE)
 
@@ -170,11 +169,7 @@ for (i in seq_along(zones)){
               paste0("LF", version_target, "_z", 
                      this_zone_pad, "_CMB.csv")),
     show_col_types = FALSE) #%>% 
-  # only updating where there IS disturbance
-  #  filtering to reduce size of rcl and processing time
-  # not needed with appropriate cropping and masking below
-  ##filter(DIST > 0)
-  
+
   #reclassification rules matrix
   this_rcl <- this_rules %>% 
     dplyr::select(encoded, NewFBFM40) %>% 
@@ -224,7 +219,7 @@ for (i in seq_along(zones)){
   varnames(this_updt) <- "new_fbfm40"
   
   if (save_updated) {
-    folder_ud <- file.path(folder_fuels_base, version_proj, 
+    folder_ud <- file.path(folder_out_base, version_proj, 
                            "FBFM40_update_zone_onlydist")
     dir.create(folder_ud, showWarnings = FALSE, recursive=TRUE)
     
@@ -253,7 +248,7 @@ for (i in seq_along(zones)){
   this_updt_fbfm <- cover(this_updt, this_fbfm, values = NA)
 
   # Save out
-  folder_out <- file.path(folder_fuels_base, version_proj, "FBFM40_update_zone")
+  folder_out <- file.path(folder_out_base, version_proj, "FBFM40_update_zone")
   dir.create(folder_out, showWarnings = FALSE, recursive = TRUE)
   
   writeRaster(
@@ -264,6 +259,12 @@ for (i in seq_along(zones)){
     #python .int16() #changed from .uint16() per request of Chris L. for 2024 run
     # R terra equivalent is INT2U. 
     datatype = "INT2U")
+  
+  # TODO
+  #QA flags
+  # 1: disturbed and UPDATED value
+  # 2: disturbed but SAME value as before
+  # merge with -1 unmatched rules above??
   
 } # end per zone (i)
 (end_time <- Sys.time())

@@ -19,7 +19,7 @@ options(scipen=999)
 
 ### Data in --------------------------------------------
 
-folder_in <- file.path(folder_fuels_base, version_proj, "FBFM40_update_zone")
+folder_in <- file.path(folder_out_base, version_proj, "FBFM40_update_zone")
 
 ### Mosaic via merge --------------------------------------
 
@@ -42,7 +42,7 @@ sprc_fbfm <- do.call(sprc, list(files_fbfm))
 #Do not use algo 1 as it resamples. Use algo 3 if a vrt is needed.
 conus_fbfm <- merge(sprc_fbfm, algo = 2,
                     filename = file.path(
-                      folder_fuels_base, 
+                      folder_out_base, 
                       version_proj,
                       paste0("fbfm_conus_", version_proj, ".tif")))
 (end_time <- Sys.time())
