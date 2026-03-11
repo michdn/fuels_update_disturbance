@@ -17,8 +17,9 @@
 #  Shapefiles
 # "CONUS Mapzone Shapefile"
 
-
-
+#TODO
+# The encoding could use a refactor since doing the same logic twice
+#  with current zone and then with neighbor zones. 
 
 ### Packages & Function -------------------------------
 
@@ -35,6 +36,11 @@ source(file.path("scripts", "common_vars_functions.R"))
 ### User settings -----------------------------------
 
 source(file.path("scripts", "0_parameters", "2026_WRME_LF2024_updt2025.R"))
+
+#5 Was used in GEE python since beginning, edit with extreme caution
+n_neighbors <- 5
+
+### Settings ----------------------------------------
 
 #preventing scientific notation
 options(scipen=999)
@@ -118,8 +124,9 @@ zone_c <- st_centroid(zones_sf)
 
 #just need closest ones, without distance, st_nn() easier than st_distance()
 
-#k=6 since we will be dropping self, returns INDEX
-zone_k6_raw <- nngeo::st_nn(zone_c, zone_c, k=6)
+# Note: st_nn() returns self as one of the neighbors
+#k=number of neighbors PLUS ONE, since we will be dropping self, returns INDEX
+zone_k6_raw <- nngeo::st_nn(zone_c, zone_c, k=(n_neighbors+1))
 
 #dropping the first element of each (which is the self)
 # in order of zones_sf/zone_c
@@ -255,17 +262,23 @@ for (i in 1:nrow(zone_c_idx)){
       #  it keeps the first row 
       distinct(encoded, .keep_all=TRUE)
     
+    
+    # NewCanopy LF2024 has new value 9999 in some zones?
+    #  In older versions, I believe these would have been 0
+    this_cmb <- this_cmb %>% 
+      mutate(NewCanopy = if_else(NewCanopy==9999, 0, NewCanopy))
+    
+    
   }# end j neighbors
   
   #save out zone with neighbor rules
   write_csv(this_cmb,
             file.path(folder_out,
-                      #same name, but different folder! 
                       paste0("LF", version_target, 
                              "_z", this_zone_pad,
-                             "_CMB.csv")))
+                             "_n_CMB.csv")))
   
-  print(paste("Finished zone", this_zone_num, ". ", 
+  print(paste0("Finished zone ", this_zone_num, ". ", 
               i, " of ", nrow(zone_c_idx), "."))
 
 } # end i zones
