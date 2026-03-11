@@ -1,4 +1,7 @@
 # Script to mosaic/merge the per zone fbfm40 updated rasters
+
+# Run time: ~ 1 hour
+
 ### Packages & Function -------------------------------
 
 if (!require("pacman")) install.packages("pacman")

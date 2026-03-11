@@ -159,15 +159,12 @@ for (i in seq_along(zones)){
                i, " of ", length(zones), 
                " at ", Sys.time()))
   
-  this_zone_sf <- zones_sf %>% 
-    filter(ZONE_NUM == this_zone_num)
-  
   #get rules for this zone (plus neighbors)
   this_rules <- read_csv(
     file.path(folder_lfrules_base,
               paste0("rules_wneighbors_LF", version_target),
               paste0("LF", version_target, "_z", 
-                     this_zone_pad, "_CMB.csv")),
+                     this_zone_pad, "_n_CMB.csv")),
     show_col_types = FALSE) #%>% 
 
   #reclassification rules matrix
