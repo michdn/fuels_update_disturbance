@@ -37,87 +37,41 @@ options(scipen=999)
 # ABSOLUTELY CRITICAL SETTING, DO NOT CHANGE
 terraOptions(datatype="FLT8S") #FLT8S 
 
+# appropriate zone rasters, parameter set in parameter script file
+if (LF_buffer == 0){
+  folder_zones <- file.path(folder_mapzones,
+                            "per_zone_rasters_0km")
+} else if (LF_buffer == 90){
+  folder_zones <- file.path(folder_mapzones,
+                            "per_zone_rasters_90km")
+} else {
+  stop(paste0("Unmatched LF buffer selection: ", LF_buffer))
+}
+
 # Out-folder. Guide depends on DIST, so project-level, so put in proj folder
-folder_out <- file.path(folder_out_base, version_proj, "canopy_guide")
+folder_out <- file.path(folder_out_base, 
+                        version_proj, 
+                        "processing", 
+                        "canopy_guide")
 dir.create(folder_out, showWarnings = FALSE, recursive=TRUE)
 
 ### Data in ------------------------------------------
 
-## LFTFC rules by zone (with neighbors)
+# LFTFC rules by zone (with neighbors)
 #location of LFTFCT ruleset, encoded, with neighboring zones
 folder_cmb <- file.path(folder_lfrules_base,
                         paste0("rules_wneighbors_LF",
                                version_target))
 
-## Veg
-file_bps <- list.files(
-  path = folder_lfproc,
-  pattern = paste0("^LF", version_bps, "_bps_coded\\.tif$"),
-  full.names = TRUE)
-bps <- rast(file_bps)
+# Encoded DIST & criteria raster
+coded_dist <- rast(file.path(folder_out_base,
+                             version_proj,
+                             "processing", 
+                             "encoded_rule_criteria_distonly.tif"))
 
-# per GEE code: 
-# "the actual values being used in the FM40 crosswalk are the FVH, FVC, FVT
-# however, the tables have EVH, EVC, EVT...
-# so variables are named as in the tables but note they are actually the F* layers"
-file_evc <- list.files(
-  path = folder_lfproc,
-  pattern = paste0("^LF", version_target, "_fvc_coded\\.tif$"),
-  full.names = TRUE)
-file_evh <- list.files(
-  path = folder_lfproc,
-  pattern = paste0("^LF", version_target, "_fvh_coded\\.tif$"),
-  full.names = TRUE)
-file_evt <- list.files(
-  path = folder_lfproc,
-  pattern = paste0("^LF", version_target, "_fvt_coded\\.tif$"),
-  full.names = TRUE)
-
-evc <- rast(file_evc)
-evh <- rast(file_evh)
-evt <- rast(file_evt)
-
-
-## Disturbance
-
-# TODO - Update to final dist raster
+# Disturbance
 # Set in the project parameters
 dist <- rast(dist_file)
-
-
-### Encode images -------------------------------------------------
-
-# Encode the images into the unique codes (guide/rule criteria)
-
-# TODO - maybe pull into a preprocess step? Doing twice:
-#          in canopy guide and fbfm update
-## The encoding. Use the same as in 1_ruleset/2_neighboring_rules.R
-(start_time <- Sys.time())
-r_stack <- c(dist * 1e11,
-             bps  *  1e7,
-             evh  *  1e5,
-             evc  *  1e3,
-             evt  *  1e0)
-r_coded <- terra::app(r_stack, fun = "sum")
-(end_time <- Sys.time())
-(end_time - start_time)
-
-# Rather than masking each zone inside the loop.
-#where no disturbance, NA, otherwise encoded value
-#mask (17 min) is much faster than ifel (50 min)
-coded_dist <- mask(r_coded, dist, maskvalues=0, inverse=FALSE)
-
-
-# #save out for dev/QA use
-terra::writeRaster(
-  coded_dist,
-  file.path("data", "test_data", "coded_dist_flt8s_lfd.tif"),
-  gdal=c("COMPRESS=DEFLATE"),
-  #set for largest possible values given size of encoded values
-  datatype = "FLT8S",
-  overwrite = TRUE)
-
-coded_dist <- rast(file.path("data", "test_data", "coded_dist_flt8s_lfd.tif"))
 
 
 ### Guide by zone -------------------------------------------------
@@ -147,7 +101,7 @@ for (i in seq_along(zones)){
   
   #read in this zone raster (for masking)
   this_z_r <- rast(
-    file.path("data", "lf_mapzones", "per_zone_rasters",
+    file.path(folder_zones,
               paste0("z", this_zone_pad, ".tif")))
   
   #crop the disturbed-only criteria raster to this zone extent (not mask here)
@@ -198,15 +152,14 @@ for (i in seq_along(zones)){
   #          (Trees, where torching and crowing is likely.) 
   # CG = 2 : Using regression update values for CC, CH. 
   #          CBH is set to 100 (10m) where CG is 2. 
-  #          CBD is set to 1 (0.012kg/m^3) where CG is 2. 
+  #          CBD is set to 1 (~0.012kg/m^3) where CG is 2. 
   #          (Trees, where torching and crowning not likely.)
-  # CG = 3 :CBH, CH, CC as regression predicted. 
+  # CG = 3 : CBH, CH, CC as regression predicted. 
   #         (Tree, where torching would occur, not active crowning not likely.)
-  #
-  # TODO ???? 0.012? Not 0.03???       
-  #CBD
-  # .where(canopy_guide.eq(3), 1) # 1 (0.012kg/m^3) where CG is 3
-  
+  #         CBD is set to 3 (0.03kg/m^3) where CG is 3. 
+  #           NOTE: Previously set to 1 in GEE python code, updated to 3, 
+  #                 per LFTFCT user guide & canopy rules
+
   #FROM LFLFTFCT Guide: 
   # 3.4.2 Canopy guide toggle Modeled fire behavior is influenced by many vegetation attributes, but in forested areas, canopy is a particularly important factor affecting fire behavior outputs. A user-defined switch has been incorporated in LFTFC to describe the effects of canopy. The switch has the following three numeric settings.  • 0: This setting indicates no canopy on the site. Canopy Base Height (CBH) and Canopy Bulk Density (CBD) calculations from the LF data sets would be used to indicate the likelihood of crown fire on the site. • 1: This setting would be used on a tree life form site where torching and crowning in the upper strata vegetation is common during times of fire activity. • 2: This setting would be used on tree life form sites where torching and crowning are not likely to occur, such as in some hardwood communities. The mapping tool in this setting artificially raises CBH to 10 meters and lowers CBD to 0.012 kg/m³. Torching and crowning will not occur but the stand attributes (CH and CC) will be used in the calculations of surface fire behavior characteristics. The reason for keeping the canopy attributes in place is to adjust wind speed, shading, and sheltering for surface fire calculations. • 3: This setting would be used on tree life form sites where torching would occur, but active crowning is not likely, such as in mixed hardwood and conifer communities. The mapping tool in this setting artificially lowers CBD to 0.03 kg/m³, but leaves CBH, CH, and CC as predicted.
   this_canopy <- mask(this_canopy, this_canopy, maskvalues = -1)

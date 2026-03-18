@@ -20,11 +20,6 @@ source(file.path("scripts", "common_vars_functions.R"))
 source(file.path("scripts", "0_parameters", 
                  "2026_WRME_LF2024_updt2025.R"))
 
-# #preventing scientific notation
-# options(scipen=999)
-
-
-
 ### Data in --------------------------------------------
 
 ## Get FVH & FVC rasters -- originals, not encoded versions
@@ -50,10 +45,10 @@ fvh_orig <- rast(file_fvh)
 #    but code used LF2020 version, so that is what we use below. 
 
 fvc_lut <- read_csv(file.path(
-  folder_lfproc, "LUTs", "LFTFCT_tables_LF2020_LUT_Cover.csv"))
+  folder_lut, "LF2020_LUT_Cover.csv"))
 
 fvh_lut <- read_csv(file.path(
-  folder_lfproc, "LUTs", "LFTFCT_tables_LF2020_LUT_Height.csv"))
+  folder_lut, "LF2020_LUT_Height.csv"))
 
 #DEVELOPER NOTE
 # TODO
