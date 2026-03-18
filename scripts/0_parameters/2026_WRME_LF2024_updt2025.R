@@ -31,3 +31,6 @@ dist_file <- file.path(
   "data", "output", "wrme2025_v1", "disturbance", 
   "LDist_2025_dist_coded.tif")
 
+## Use 0km or 90km buffer for LF zones/data
+# c(0, 90)
+LF_buffer <- 90
