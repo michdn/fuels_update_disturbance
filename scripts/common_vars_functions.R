@@ -58,7 +58,9 @@ zones <- zones0km_sf %>% dplyr::pull(ZONE_NUM) %>% sort()
 #Helper function
 make_reg_rcl <- function(reg_tbl, col_name) {
   reg_tbl %>%
-    dplyr::select(from_code, col_name) %>%
+    #using all_of() because of external vector in selection
+    #  (col_name is a variable, with the value of the column name)
+    dplyr::select(from_code, tidyselect::all_of(col_name)) %>%
     #very important to reduce rcl length for reclassifying time
     dplyr::distinct() %>%
     as.matrix()
