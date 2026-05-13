@@ -61,6 +61,7 @@ height_reg_tbl <- readr::read_csv(file.path(
 file_cg <- file.path(
   folder_out_base,
   version_proj,
+  "processing",
   paste0("canopy_guide_conus_", version_proj, ".tif")
 )
 cg <- terra::rast(file_cg)
@@ -101,8 +102,19 @@ file_ch <- list.files(
 )
 ch_orig <- terra::rast(file_ch)
 
-# Zones to limit data (i.e. no LF buffer around CONUS)
-zones_r <- terra::rast(file.path(folder_mapzones, "LF_zones_rasterized.tif"))
+# # Zones to limit data (i.e. no LF buffer around CONUS)
+# # appropriate zone raster, parameter set in parameter script file
+# if (LF_buffer == 0) {
+#   zones_r <- terra::rast(
+#     file.path(folder_mapzones, "LF_zones_0km_rasterized.tif")
+#   )
+# } else if (LF_buffer == 90) {
+#   zones_r <- terra::rast(
+#     file.path(folder_mapzones, "LF_zones_90km_rasterized.tif")
+#   )
+# } else {
+#   stop(paste0("Unmatched LF buffer selection: ", LF_buffer))
+# }
 
 ### CC regress & update --------------------------------------------------------
 
@@ -189,8 +201,12 @@ cc_updt <- terra::cover(cc_updtdist, cc_orig, values = NA)
 #global(cc_updt, "notNA")
 #global(cc_orig, "notNA")
 
-# Limit to zones_r, removing LF buffer (matches FBFM40)
-cc_conus <- terra::ifel(!is.na(zones_r), cc_updt, NA)
+# Based on project parameters, potentially limit to zones_r, removing LF buffer
+if (LF_buffer == 0) {
+  cc_conus <- terra::ifel(!is.na(zones0km_r), cc_updt, NA)
+} else {
+  cc_conus <- cc_updt
+}
 
 #Save
 terra::writeRaster(
@@ -247,24 +263,18 @@ ch_cg0 <- terra::mask(ch_bin, cg, maskvalues = 0, updatevalue = 0)
 ch_cc0 <- terra::mask(ch_cg0, cc_orig, maskvalues = 0, updatevalue = 0)
 
 # Limit to ONLY disturbed pixels
-ch_clean <- terra::mask(ch_cc0, dist_bin, maskvalues = 1, inverse = TRUE)
-
-## Update existing - CH
-
-# Fill in with baseline values anywhere where there is
-#  no updated values (ie. not disturbed & regression calc'd)
-ch_updt <- terra::cover(ch_clean, ch_orig, values = NA)
+ch_updtdist <- terra::mask(ch_cc0, dist_bin, maskvalues = 1, inverse = TRUE)
 
 # Rename
-names(ch_updt) <- "ch"
-varnames(ch_updt) <- "ch"
+names(ch_updtdist) <- "ch"
+varnames(ch_updtdist) <- "ch"
 
 if (save_updatedonly) {
   folder_ud <- file.path(folder_out_base, version_proj, "distonly_update")
   dir.create(folder_ud, showWarnings = FALSE, recursive = TRUE)
 
   terra::writeRaster(
-    ch_updt,
+    ch_updtdist,
     file.path(
       folder_ud,
       paste0("ch_updtonly_", version_proj, ".tif")
@@ -273,8 +283,18 @@ if (save_updatedonly) {
   )
 }
 
-# Limit to zones_r, removing LF buffer (matches FBFM40)
-ch_conus <- terra::ifel(!is.na(zones_r), ch_updt, NA)
+## Update existing - CH
+
+# Fill in with baseline values anywhere where there is
+#  no updated values (ie. not disturbed & regression calc'd)
+ch_updt <- terra::cover(ch_updtdist, ch_orig, values = NA)
+
+# Based on project parameters, potentially limit to zones_r, removing LF buffer
+if (LF_buffer == 0) {
+  ch_conus <- terra::ifel(!is.na(zones0km_r), ch_updt, NA)
+} else {
+  ch_conus <- ch_updt
+}
 
 #Save
 terra::writeRaster(

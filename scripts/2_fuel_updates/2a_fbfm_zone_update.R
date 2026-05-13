@@ -67,7 +67,6 @@ fbfm <- terra::rast(file_fbfm40)
 
 ### Update by zone -------------------------------------------------
 
-(start_time <- Sys.time())
 for (i in seq_along(zones)) {
   this_zone_num <- zones[[i]]
   this_zone_pad <- stringr::str_pad(this_zone_num, 2, "left", 0)
@@ -164,11 +163,11 @@ for (i in seq_along(zones)) {
 
     terra::writeRaster(
       this_updt,
-      file.path(folder_out, paste0("fbfm40_z", this_zone_pad, "_updtonly.tif")),
+      file.path(folder_ud, paste0("fbfm40_z", this_zone_pad, "_updtonly.tif")),
       gdal = c("COMPRESS=DEFLATE"),
       #python .int16() #changed from .uint16() per request of Chris L. for 2024 run
-      # R terra equivalent is INT2U.
-      datatype = "INT2U"
+      # R terra equivalent is INT2S.
+      datatype = "INT2S"
     )
   } # end if save_unmatched
 
@@ -203,8 +202,8 @@ for (i in seq_along(zones)) {
     file.path(folder_out, paste0("fbfm40_z", this_zone_pad, ".tif")),
     gdal = c("COMPRESS=DEFLATE"),
     #python .int16() #changed from .uint16() per request of Chris L. for 2024 run
-    # R terra equivalent is INT2U.
-    datatype = "INT2U"
+    # R terra equivalent is INT2S.
+    datatype = "INT2S"
   )
 
   # TODO

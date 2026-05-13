@@ -52,7 +52,7 @@ cmb <- readr::read_csv(file_raw_cmb)
 
 ### Parse out each zone --------------------------------------------------------
 
-zonelist <- cmb %>% pull("Zone") %>% unique() %>% sort()
+zonelist <- cmb %>% dplyr::pull("Zone") %>% unique() %>% sort()
 #Note: could have used `zones` from common_vars_functions.R but
 # Master_CMB has zones from everywhere not just CONUS
 
@@ -62,11 +62,11 @@ for (i in seq_along(zonelist)) {
   print(paste0('Starting i = ', i, " & zone = ", this_zone))
 
   this_cmb <- cmb %>%
-    filter(Zone == this_zone)
+    dplyr::filter(Zone == this_zone)
 
   print(paste0('This zone has ', nrow(this_cmb), ' records'))
 
-  this_zone_pad <- str_pad(this_zone, 2, pad = "0")
+  this_zone_pad <- stringr::str_pad(this_zone, 2, pad = "0")
 
   readr::write_csv(
     this_cmb,

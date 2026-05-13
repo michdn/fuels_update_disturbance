@@ -23,6 +23,7 @@ source(file.path("scripts", "0_parameters", "2026_WRME_LF2024_updt2025.R"))
 ### Settings -------------------------------------------------------------------
 
 folder_out <- file.path(folder_out_base, version_proj, "processing")
+dir.create(folder_out, recursive = TRUE, showWarnings = FALSE)
 
 #preventing scientific notation
 options(scipen = 999)
@@ -115,7 +116,7 @@ terra::writeRaster(
   datatype = "FLT8S"
 )
 
-### Regression DIST encoding --------------------------------------
+### Regression DIST encoding ---------------------------------------------------
 
 # ~1.5 hours
 
@@ -123,7 +124,11 @@ terra::writeRaster(
 # Uses original/un-encoded EVT
 # This will match against the regression tables for calculating
 #  updated canopy fuel layers
-r_stack_reg <- c(dist * 1e4, evt_lf * 1e0)
+#fmt:skip
+r_stack_reg <- c(
+  dist   * 1e4, 
+  evt_lf * 1e0
+)
 enc_reg_rast <- terra::app(r_stack_reg, fun = "sum")
 
 #encoded rast only in disturbed areas

@@ -109,7 +109,6 @@ evt_lf <- terra::rast(file_fvt_lf)
 evt_lf <- terra::mask(evt_lf, evt_lf, maskvalues = -9999)
 
 # Zones to potentially limit data (i.e. no LF buffer around CONUS)
-#  (to match with fbfm zones that were used)
 #  LF_buffer set in parameter script file
 if (LF_buffer == 0) {
   zones0km_r <- terra::rast(file.path(
@@ -150,34 +149,26 @@ cbh_cc0 <- terra::mask(cbh_cg2, cc_new, maskvalues = 0, updatevalue = 0)
 
 # "CBH can't be larger than CH; where it is, reduce CBH to 2/3 of CH"
 # (~1 hr)
-
-# There is no reason that the !is.na(cbh_cc0) should be necessary,
-#  and yet it produces results where cbh_cc0 is NA unless it is included.
-# This is likely a strange bug in terra::ifel()?? Submitted bug report
-# https://github.com/rspatial/terra/issues/2058
-# TODO Check back on bug report
-# cbh_ch <- ifel(cbh_cc0 > ch_new,
-#                round(ch_new * 0.667, digits = 0),
-#                cbh_cc0)
+# Terra 1.9.7 or above: see https://github.com/rspatial/terra/issues/2058
 cbh_ch <- terra::ifel(
-  !is.na(cbh_cc0) & cbh_cc0 > ch_new,
+  cbh_cc0 > ch_new,
   round(ch_new * 0.667, digits = 0),
   cbh_cc0
 )
 
 # Limit to ONLY disturbed pixels
-cbh_clean <- terra::mask(cbh_ch, dist_bin, maskvalues = 1, inverse = TRUE)
+cbh_updtdist <- terra::mask(cbh_ch, dist_bin, maskvalues = 1, inverse = TRUE)
 
 # Rename
-names(cbh_clean) <- "cbh"
-varnames(cbh_clean) <- "cbh"
+names(cbh_updtdist) <- "cbh"
+varnames(cbh_updtdist) <- "cbh"
 
 if (save_updatedonly) {
   folder_ud <- file.path(folder_out_base, version_proj, "distonly_update")
   dir.create(folder_ud, showWarnings = FALSE, recursive = TRUE)
 
   terra::writeRaster(
-    cbh_clean,
+    cbh_updtdist,
     file.path(
       folder_ud,
       paste0("cbh_updtonly_", version_proj, ".tif")
@@ -188,7 +179,7 @@ if (save_updatedonly) {
 
 # Fill in with baseline values anywhere where there is
 #  no updated values (ie. not-disturbed-&-regression-calc'd)
-cbh_updt <- terra::cover(cbh_clean, cbh_orig, values = NA)
+cbh_updt <- terra::cover(cbh_updtdist, cbh_orig, values = NA)
 
 # Based on project parameters, potentially limit to zones_r, removing LF buffer
 if (LF_buffer == 0) {
@@ -308,18 +299,18 @@ cbd_cc0 <- terra::mask(cbd_cg3, cc_new, maskvalues = 0, updatevalue = 0)
 ## Disturbed & update/fill in non-disturbed
 
 # Limit to ONLY disturbed pixels
-cbd_clean <- terra::mask(cbd_cc0, dist_bin, maskvalues = 1, inverse = TRUE)
+cbd_updtdist <- terra::mask(cbd_cc0, dist_bin, maskvalues = 1, inverse = TRUE)
 
 # Rename
-names(cbd_clean) <- "cbd"
-varnames(cbd_clean) <- "cbd"
+names(cbd_updtdist) <- "cbd"
+varnames(cbd_updtdist) <- "cbd"
 
 if (save_updatedonly) {
   folder_ud <- file.path(folder_out_base, version_proj, "distonly_update")
   dir.create(folder_ud, showWarnings = FALSE, recursive = TRUE)
 
   terra::writeRaster(
-    cbd_clean,
+    cbd_updtdist,
     file.path(
       folder_ud,
       paste0("cbd_updtonly_", version_proj, ".tif")
@@ -330,7 +321,7 @@ if (save_updatedonly) {
 
 # Fill in with baseline values anywhere where there is
 #  no updated values (ie. not-disturbed-&-regression-calc'd)
-cbd_updt <- terra::cover(cbd_clean, cbd_orig, values = NA)
+cbd_updt <- terra::cover(cbd_updtdist, cbd_orig, values = NA)
 
 # Based on project parameters, potentially limit to zones_r, removing LF buffer
 if (LF_buffer == 0) {

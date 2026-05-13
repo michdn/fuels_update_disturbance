@@ -60,12 +60,12 @@ fbfm_orig <- terra::rast(file_fbfm40)
 # Can use the simpler and faster merge (but NOT algo 1 which resamples).
 
 files_fbfm <- list.files(folder_in, full.names = TRUE)
-if (!length(files_fbfm) == nrow(zones_sf)) {
+if (!length(files_fbfm) == length(zones)) {
   stop(paste0(
     "Incorrect number of fbfm per zone rasters. Found ",
     length(files_fbfm),
     ", but",
-    nrow(zones_sf),
+    length(zones),
     "were expected."
   ))
 }
@@ -98,12 +98,12 @@ terra::writeRaster(
 
 if (save_updatedonly) {
   files_fbfm_uo <- list.files(folder_in_uo, full.names = TRUE)
-  if (!length(files_fbfm_uo) == nrow(zones_sf)) {
+  if (!length(files_fbfm_uo) == length(zones)) {
     stop(paste0(
       "Incorrect number of update-only fbfm per zone rasters. Found ",
       length(files_fbfm_uo),
       ", but",
-      nrow(zones_sf),
+      length(zones),
       "were expected."
     ))
   }
@@ -131,6 +131,9 @@ if (save_updatedonly) {
       folder_ud,
       paste0("fbfm40_updtonly_", version_proj, ".tif")
     ),
-    gdal = c("COMPRESS=DEFLATE")
+    gdal = c("COMPRESS=DEFLATE"),
+    #python .int16() #per request of Chris L. for 2024+ run
+    # R terra equivalent is INT2S.
+    datatype = "INT2S"
   )
 }

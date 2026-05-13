@@ -49,12 +49,12 @@ cc_orig <- terra::rast(file_cc)
 # Will have to fix outer extents (it shaved off edges).
 
 files_cg <- list.files(folder_in, full.names = TRUE)
-if (!length(files_cg) == nrow(zones_sf)) {
+if (!length(files_cg) == length(zones)) {
   stop(paste0(
     "Incorrect number of canopy guide per zone rasters. Found ",
     length(files_cg),
     ", but",
-    nrow(zones_sf),
+    length(zones),
     "were expected."
   ))
 }
