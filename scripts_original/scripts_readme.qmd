@@ -1,0 +1,65 @@
+---
+title: "Scripts README"
+format: html
+---
+
+The scripts folder contains the first-pass port of the python Google Earth Engine CONUS-wide fuel update code (https://github.com/pyregence/firefactor-fuels) to R. 
+
+These scripts will be turned into functions, rendering most the below documentation moot, but this can be used as reference as needed. 
+
+See https://docs.google.com/spreadsheets/d/1Wv-7kWDKNYY_hTS-sD4a-qgmFPHAtyVKwA8cLmqiBzs/edit?usp=sharing for details on script run timing estimates. 
+
+There are a few phases of preparation and updating fuels. 
+
+## 1. LANDFIRE mapzone preprocessing
+
+This is done once, at the beginning of installing/setting up this code repo locally. These will not change over different LF versions. (They have once before, so it could happen, but unlikely.) Time to run is roughly 30 hours on a fairly powerful machine. 
+
+- ```scripts/preprocess_mapzones/zones_into_rasters.R```
+
+## 2. LANDFIRE data preprocessing 
+
+This set is run once each time you are changing/updating which LANDFIRE version you are using. There are TWO main sections to this -- A) the LANDFIRE Total Fuel Change Tool (LFTFCT) rules, and B) the base fuel and vegetation rasters. 
+
+IMPORTANT NOTE: First, the new LF data must be downloaded and extracted into the ```data/landfire/``` folder. Must have FV* data downloaded before running the rule scripts, as they use the csv data to create the per LF version dynamic crosswalks for the FVH, FVC, and FVT data. 
+
+### A) LFTFCT rules
+
+This set of scripts extract and create a set of rules with encoded criteria values that can be used to match with encoded spatial data to identify fuel change rules that apply with that disturbance and the vegetation criteria. 
+
+The MS Access database of the LFTFCT ruleset must be downloaded from the LANDFIRE website. The rule tables are manually extracted from the database, and are processed and encoded. Note: The encoding has been changed from the python GEE code to reduce the number of digits needed. This is the 'double-encoding' with the FVH, FVC, and FVT layers. Note that the actual values being used are the FVH, FVC, FVT however, the table column names have them labeled as EVH, EVC, EVT. The scripts themselves only take a few minutes to run. 
+
+- ```scripts/1_ruleset/0_encoding_preprocess.R```: Creates the FV* recode crosswalks used in 2_fuel_updates/0a_landfire_preprocess.R. 
+- ```scripts/1_ruleset/1_parse_zone.R```: Pulls out rules for each zone from master list. 
+- ```scripts/1_ruleset/2_neighboring_rules.R```: This does the rule value encoding and also adds in the rules from the five nearest neighbors (this helps to increase the number of rules that can be applied in a zone without manually intervention). 
+
+### A) Base fuels and vegetation
+
+This preps the fuel and vegetation layers to be used in criteria encoding for matching the fuel change rules, to be used in the regression to estimate the new updated values, or to be used to fill in non-disturbed pixel values. These two scripts take about six hours to run (most of the time is for 0a). 
+
+- Set up the ```0_parameters/{my_project_parameters.R}``` file (using ```2025_WRME_LF2024_updt2025.R``` as a guide) with the desired LF version that you've downloaded. 
+- ```scripts/2_fuel_updates/0a_landfire_preprocess.R```: This removes the No Data values as applicable, and does the initial encoding of the FV* rasters (for the double-encoding so that the criteria value remains small enough to be saved, see section A LFTFCT rules).
+- ```scripts/2_fuel_updates/0b_canopy_midpoints.R```: Create the FVC and FVH midpoints (from original, not encoded, values) that will be needed for the regression calculations for updating CC and CH layers. 
+
+
+## 3. Disturbance data 
+
+This is set up once per project/version of fuel updates. It may be reused. This raster layer can come from any number of sources, but ultimately it needs to be a raster with the 3-digit DIST codes that is pixel-aligned (same CRS, origin, and extent) with the LF version data. 
+The 2026 WRME project uses LF2024 as a base and updates with disturbance from LF2025 LDist (Limited Disturbance). The LDist has to be translated to the three-digit DIST code first. The steps for that process were:
+
+- Manually downloaded the LF disturbance product and extract into the ```data/landfire/``` folder.
+- Used the ```scripts/disturbance/1_LF_annual_dist_to_code.R``` which is partially built to handle a wider range of LF disturbance products, but currently is limited to 1-year of a LF product. 
+- Once the DIST raster is created, update the ```0_parameters/025_WRME_LF2024_updt2025.R``` script parameter with the DIST file location.
+- This will be used starting in the script ```2_fuel_updates/1_dist_criteria_encoding.R```.
+
+## 4. Fuel updating
+
+This is the core goal of the scripts, and will be run for each project version (i.e. combination of base LF fuel data and disturbance data). The scripts are mostly arranged similar to how they were written in the python GEE code. Run back to back, these take slightly over 24 hours to run. 
+
+- ```1_dist_criteria_encoding.R```: This creates the DIST and criteria encoded rasters. The rule-encoded raster (DIST + criteria) is used in both the fbfm and canopy guide scripts. The regression-encoded raster is used in the canopy layer regression scripts. 
+- ```2a_fbfm_zone_update.R```: Per zone, calculates the updated FBFM40 values. The two FBFM40 scripts can be run anytime after 1_dist_criteria_encoding.R and do not need to be run before the canopy scripts (3a-5). 
+- ```2b_fbfm_merge.R```: Merges all zones together into one CONUS-wide raster. 
+- ```3a_canopy_guide.R```: Per zone, creates a canopy guide for evaluating when a canopy-layer pixel will be updated or have a manual override value applied. Must be run before 3b-5. 
+- ```3b_canopy_guide_merge.R```: Merges all zones together into one CONUS-wide raster. 
+- ```4_CC_CH.R```: Using the canopy guide and the update regression formula, estimates new CC and CH values for the disturbed pixels and fills in the undisturbed pixels with the base LANDFIRE data. Optionally saves out rasters with only the updated/regression-calculated values. Runs CONUS-wide, not per zone. Must be run after 3a and 3b, and before 5_CBD_CBH.R. 
+- ```5_CBD_CBH.R```: Using the canopy guide and either the update regression formula (CBH) or a CBD-specialized regression, estimates new values for the disturbed pixels and fills in the undisturbed pixels with the base LANDFIRE data. Optionally saves out rasters with only the updated/regression-calculated values. Runs CONUS-wide, not per zone. Must be run after 3a-4. 
