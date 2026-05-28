@@ -204,13 +204,13 @@ file_bps <- list.files(
 
 bps <- terra::rast(file_bps)
 # IS ALLOWED TO HAVE -1111, there are rules for it,
-#   but need to recode for encoding criteria
+#   but need to recode for encoding criteria (new value 8888)
 #remove -9999
 bps[bps == -9999] <- NA
 bps[bps == -1111] <- 8888
 
 #Weird that extents changed between 2020 and 2024
-# Should probably build an auto-check
+# Should probably build an auto-check?
 bps_ext <- terra::extend(bps, fvh)
 
 terra::writeRaster(
