@@ -16,14 +16,14 @@ pacman::p_load(
   terra
 )
 
-source(file.path("scripts", "common_vars_functions.R"))
+source(file.path("scripts_original", "common_vars_functions.R"))
 
 ### User settings --------------------------------------------------------------
 
-source(file.path("scripts", "0_parameters", "2026_WRME_LF2024_updt2025.R"))
+source(file.path("scripts_original", "0_parameters", "2026_pc666_garnetLF.R"))
 
 #save out encoded pixels that do not match rules, per zone
-save_unmatched <- FALSE
+save_unmatched <- TRUE
 #save a copy of only-updated disturbed pixels (does not affect final output)
 save_updatedonly <- TRUE
 

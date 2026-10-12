@@ -28,11 +28,11 @@ pacman::p_load(
   terra
 )
 
-source(file.path("scripts", "common_vars_functions.R"))
+source(file.path("scripts_original", "common_vars_functions.R"))
 
 ### User settings --------------------------------------------------------------
 
-source(file.path("scripts", "0_parameters", "2026_WRME_LF2024_updt2025.R"))
+source(file.path("scripts_original", "0_parameters", "2026_pc660_east.R"))
 
 ## LANDFIRE disturbance
 # dist_year is the LF year
@@ -41,7 +41,7 @@ dist_year <- "2025"
 #  "Limited": "LDist",
 #  "Preliminary": "PDist",
 #  "Annual": "Dist"
-dist_vers <- "LDist"
+dist_vers <- "Dist"
 
 ### D_TYPE & D_SEVERITY xwalks -------------------------------------------------
 
@@ -139,9 +139,9 @@ yr_diff <- as.numeric(dist_year) - as.numeric(version_target)
 #  If they do, the mini xwalks above will need to be updated/dynamic.
 dist_dist <- dist_csv %>%
   dplyr::select(VALUE, DIST_TYPE, SEVERITY) %>%
-  #add year difference from LF version and disturbance version, calc above
+  # add year difference from LF version and disturbance version, calc above
   dplyr::mutate(diff_years = .env$yr_diff) %>%
-  #join all xwalks, dropping those unmatched (don't want NAs)
+  # join all xwalks, dropping those unmatched (don't want NAs)
   dplyr::inner_join(dtype_xwalk, by = dplyr::join_by(DIST_TYPE)) %>%
   dplyr::inner_join(dsev_xwalk, by = dplyr::join_by(SEVERITY)) %>%
   dplyr::inner_join(dtime_xwalk, by = join_by(diff_years)) %>%
