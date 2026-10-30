@@ -65,7 +65,7 @@ dtype_xwalk <- tibble::tribble(
   "Wildland Fire Use"  ,       1 ,
   "Prescribed Fire"    ,       1 ,
   "Mechanical Add"     ,       2 ,
-  "Thinning"           ,       2 ,
+  "Thinning"           ,       3 , #2->3 correction 2026-10-30
   "Mechanical Remove"  ,       3 ,
   "Clearcut"           ,       3 ,
   "Development"        ,       3 ,
