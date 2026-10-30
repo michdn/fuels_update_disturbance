@@ -20,12 +20,12 @@ source(file.path("scripts_original", "common_vars_functions.R"))
 
 ### User settings --------------------------------------------------------------
 
-source(file.path("scripts_original", "0_parameters", "2026_pc666_garnetLF.R"))
+source(file.path("scripts_original", "0_parameters", "insert_yours_here.R"))
 
 #save out encoded pixels that do not match rules, per zone
-save_unmatched <- TRUE
+save_unmatched <- FALSE
 #save a copy of only-updated disturbed pixels (does not affect final output)
-save_updatedonly <- TRUE
+save_updatedonly <- FALSE
 
 ### Settings -------------------------------------------------------------------
 
@@ -123,7 +123,7 @@ for (i in seq_along(zones)) {
   # (zone 5 test case - none existed in all CONUS rules)
   # save out here if wanted
   if (save_unmatched) {
-    folder_qa <- file.path("data", "test_data", "unmatched_rules")
+    folder_qa <- file.path(folder_out_base, version_proj, "unmatched_rules")
     dir.create(folder_qa, showWarnings = FALSE, recursive = TRUE)
 
     this_err <- terra::mask(

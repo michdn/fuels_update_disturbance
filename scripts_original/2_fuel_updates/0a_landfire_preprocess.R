@@ -6,6 +6,8 @@
 # 3. BPS: Removes -9999, recodes -1111 to 8888
 #         Extends BPS to later LF release extents
 
+# Uses crosswalks created in 1_ruleset/0_encoding_preprocess.R
+
 ### Packages & Function --------------------------------------------------------
 
 if (!require("pacman")) {
@@ -16,11 +18,15 @@ pacman::p_load(
   terra
 )
 
-source(file.path("scripts", "common_vars_functions.R"))
+source(file.path("scripts_original", "common_vars_functions.R"))
 
 ### User settings --------------------------------------------------------------
 
-source(file.path("scripts", "0_parameters", "2026_WRME_LF2024_updt2025.R"))
+source(file.path("scripts_original", "0_parameters", "insert_yours_here.R"))
+
+# if you need to prep BPS 2020 for the first time,
+# or if there is ever a BPS update after 2020
+update_bps <- FALSE
 
 ### Vegetation FV* -------------------------------------------------------------
 
@@ -188,33 +194,35 @@ lapply(canopy_vars, process_canopy)
 
 ## BPS LF 2020 -----------------------------------------------------------------
 
-#BPS has older naming scheme
-folder_bps <- list.files(
-  path = folder_lfdata_base,
-  pattern = paste0("^LF", version_bps, "_BPS_", "[0-9]*", "_CONUS$"),
-  include.dirs = TRUE,
-  full.names = TRUE
-)
+if (update_bps) {
+  #BPS has older naming scheme
+  folder_bps <- list.files(
+    path = folder_lfdata_base,
+    pattern = paste0("^LF", version_bps, "_BPS_", "[0-9]*", "_CONUS$"),
+    include.dirs = TRUE,
+    full.names = TRUE
+  )
 
-file_bps <- list.files(
-  path = file.path(folder_bps, "Tif"),
-  pattern = paste0("\\.tif$"),
-  full.names = TRUE
-)
+  file_bps <- list.files(
+    path = file.path(folder_bps, "Tif"),
+    pattern = paste0("\\.tif$"),
+    full.names = TRUE
+  )
 
-bps <- terra::rast(file_bps)
-# IS ALLOWED TO HAVE -1111, there are rules for it,
-#   but need to recode for encoding criteria (new value 8888)
-#remove -9999
-bps[bps == -9999] <- NA
-bps[bps == -1111] <- 8888
+  bps <- terra::rast(file_bps)
+  # IS ALLOWED TO HAVE -1111, there are rules for it,
+  #   but need to recode for encoding criteria (new value 8888)
+  #remove -9999
+  bps[bps == -9999] <- NA
+  bps[bps == -1111] <- 8888
 
-#Weird that extents changed between 2020 and 2024
-# Should probably build an auto-check?
-bps_ext <- terra::extend(bps, fvh)
+  #Weird that extents changed between 2020 and 2024
+  # Should probably build an auto-check?
+  bps_ext <- terra::extend(bps, fvh)
 
-terra::writeRaster(
-  bps_ext,
-  file.path(folder_lfproc, paste0("LF", version_bps, "_bps_coded.tif")),
-  gdal = c("COMPRESS=DEFLATE")
-)
+  terra::writeRaster(
+    bps_ext,
+    file.path(folder_lfproc, paste0("LF", version_bps, "_bps_coded.tif")),
+    gdal = c("COMPRESS=DEFLATE")
+  )
+}

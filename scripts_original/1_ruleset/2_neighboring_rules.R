@@ -38,7 +38,7 @@ source(file.path("scripts", "common_vars_functions.R"))
 
 ### User settings --------------------------------------------------------------
 
-source(file.path("scripts", "0_parameters", "2026_WRME_LF2024_updt2025.R"))
+source(file.path("scripts_original", "0_parameters", "insert_yours_here.R"))
 
 #5 Was used in GEE python since beginning, edit with extreme caution
 n_neighbors <- 5
@@ -49,7 +49,7 @@ n_neighbors <- 5
 options(scipen = 999)
 
 #column we don't need at all and can immediately drop
-drop_cols = c(
+drop_cols <- c(
   "VALUE",
   "COUNT",
   "WILDCARD",

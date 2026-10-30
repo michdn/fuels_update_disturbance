@@ -22,7 +22,7 @@ source(file.path("scripts", "common_vars_functions.R"))
 
 ### User settings --------------------------------------------------------------
 
-source(file.path("scripts", "0_parameters", "2026_WRME_LF2024_updt2025.R"))
+source(file.path("scripts_original", "0_parameters", "insert_yours_here.R"))
 
 ### Set up ---------------------------------------------------------------------
 

@@ -60,7 +60,7 @@ source(file.path("scripts_original", "common_vars_functions.R"))
 
 ### User settings --------------------------------------------------------------
 
-source(file.path("scripts_original", "0_parameters", "2026_pc666_garnetLF.R"))
+source(file.path("scripts_original", "0_parameters", "insert_yours_here.R"))
 
 #save out encoded pixels that do not match rules, per zone
 # QA setting, or change directory in writeRaster call

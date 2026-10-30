@@ -18,7 +18,7 @@ source(file.path("scripts_original", "common_vars_functions.R"))
 
 ### User settings --------------------------------------------------------------
 
-source(file.path("scripts_original", "0_parameters", "2026_pc660_west.R"))
+source(file.path("scripts_original", "0_parameters", "insert_yours_here.R"))
 
 ### Settings -------------------------------------------------------------------
 
