@@ -17,6 +17,27 @@ version_target <- "2024"
 # This is the latest/version you want to use of BPS
 version_bps <- "2020"
 
+## Use 0km or 90km buffer for LF zones/data
+# c(0, 90)
+LF_buffer <- 90
+
+## Disturbance info ------------------------------------------------------------
+
+# List of LF disturbance rasters to use in creating DIST code raster
+#  Only one for a single year update, or multiple for multiple year update.
+# MUST BE Landfire disturbance rasters, in their LF folder structure,
+#  as code will use their standard format for pulling year from file name,
+#  and using LF disturbance codes to DIST crosswalks
+lf_dists <- c(
+  file.path(
+    "data",
+    "landfire",
+    "LF2025_Dist25_CONUS",
+    "Tif",
+    "LF2025_Dist25_CONUS.tif"
+  )
+)
+
 ## DIST raster location
 # This could be created from LF disturbance data only,
 #  or and/or burn severity estimation of very recent fires
@@ -26,7 +47,3 @@ version_bps <- "2020"
 dist_file <- file.path(
   ""
 )
-
-## Use 0km or 90km buffer for LF zones/data
-# c(0, 90)
-LF_buffer <- 90
