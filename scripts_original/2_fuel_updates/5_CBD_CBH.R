@@ -6,6 +6,12 @@
 #      EVT (FVT), DIST, and
 #      Pre-generated disturbance regression table (CBH)
 
+# FIXME This script produces a huge number of tmp files that must be
+#  removed afterwards with:
+# terra::tmpFiles(current = FALSE, orphan = TRUE, old = TRUE, remove = TRUE)
+# Need to step through and see which step is creating them
+# (run tmpFiles with remove = FALSE to get list)
+
 ### Packages & Function --------------------------------------------------------
 
 if (!require("pacman")) {
@@ -20,10 +26,10 @@ source(file.path("scripts_original", "common_vars_functions.R"))
 
 ### User settings --------------------------------------------------------------
 
-source(file.path("scripts_original", "0_parameters", "insert_yours_here.R"))
+source(file.path("scripts_original", "0_parameters", "2026_pc660_east.R"))
 
 #save a copy of only-updated disturbed pixels (does not affect final output)
-save_updatedonly <- TRUE
+save_updatedonly <- FALSE
 
 ### Data in --------------------------------------------------------------------
 
