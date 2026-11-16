@@ -18,11 +18,8 @@ folder_mapzones <- file.path("data", "lf_mapzones")
 #base folder for LANDFIRE ruleset data
 folder_lfrules_base <- file.path("data", "lf_ruleset")
 
-#processed LF data
-folder_lfproc <- file.path("data", "landfire_processed")
-dir.create(folder_lfproc, recursive = TRUE, showWarnings = FALSE)
-
 #folder for FH* crosswalks for encoding criteria
+folder_lfproc <- file.path("data", "landfire_processed")
 folder_xwalk <- file.path(folder_lfproc, "crosswalks")
 dir.create(folder_xwalk, recursive = TRUE, showWarnings = FALSE)
 
@@ -40,9 +37,9 @@ dir.create(folder_out_base, recursive = TRUE, showWarnings = FALSE)
 ### Variables --------------------------------
 
 #map zones
-zones0km_sf <- sf::read_sf(
-  file.path(folder_mapzones, "LF_CONUS_mz90k_0k_shps", "conus_mz_0k.shp")
-)
+#zones0km_sf <- sf::read_sf(
+#  file.path(folder_mapzones, "LF_CONUS_mz90k_0k_shps", "conus_mz_0k.shp")
+#)
 
 #with 90 km buffer around US
 zones90km_sf <- sf::read_sf(
@@ -51,7 +48,7 @@ zones90km_sf <- sf::read_sf(
 
 # CONUS zones (Yes, there is no 11. It jumps to 98 and 99.)
 #   #c(1:10, 12:66, 98, 99)
-zones <- zones0km_sf %>% dplyr::pull(ZONE_NUM) %>% sort()
+#zones <- zones0km_sf %>% dplyr::pull(ZONE_NUM) %>% sort()
 
 ### Disturbance variables ------------------------------------------------------
 
