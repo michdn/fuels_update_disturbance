@@ -64,7 +64,11 @@ get_preproc_raster <- function(
     "fvh_midpoints",
     "fvt_coded"
   ),
-  folder_lfproc_aoi,
+  folder_lfproc_aoi = file.path(
+    folder_out_base,
+    version_proj,
+    "lf_processed_aoi"
+  ),
   version_target
 ) {
   # fbfm40 : handle common short/variant names
@@ -82,6 +86,25 @@ get_preproc_raster <- function(
   this_rast <- terra::rast(this_file)
 }
 
+# Get new updated fuel layer raster
+get_updated_raster <- function(
+  fuel_var = c("cbd", "cbh", "cc", "ch", "fbfm40"),
+  folder_proj = file.path(folder_out_base, version_proj)
+) {
+  # handle both lower or upper case input
+  fuel_var <- tolower(fuel_var)
+  # fbfm40 : handle common short/variant names
+  fm_vars <- c("fbfm40", "fm40", "fbfm", "fm")
+  fuel_var <- dplyr::if_else(fuel_var %in% fm_vars, "fbfm40", fuel_var)
+
+  # Find target in final fuel raster at project-level
+  this_file <- list.files(
+    path = folder_proj,
+    pattern = paste0("^", fuel_var, "_", version_proj, "\\.tif$"),
+    full.names = TRUE
+  )
+  this_rast <- terra::rast(this_file)
+}
 
 ### Spatial --------------------------------------------------------------------
 

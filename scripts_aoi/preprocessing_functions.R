@@ -165,19 +165,25 @@ calc_midpoints <- function(
   this_fv_r <- get_LF_raster(fv_var_upper, folder_lfdata_base, version_target)
   # get look up table
   if (fv_var_upper == "FVC") {
-    this_lut <- readr::read_csv(file.path(
-      folder_lut,
-      "LF2020_LUT_Cover.csv"
-    ))
+    this_lut <- readr::read_csv(
+      file.path(
+        folder_lut,
+        "LF2020_LUT_Cover.csv"
+      ),
+      show_col_types = FALSE
+    )
     # Create reclassification guide
     this_rcl <- this_lut %>%
       dplyr::select(EVC, MidPoint) %>%
       as.matrix()
   } else if (fv_var_upper == "FVH") {
-    this_lut <- readr::read_csv(file.path(
-      folder_lut,
-      "LF2020_LUT_Height.csv"
-    ))
+    this_lut <- readr::read_csv(
+      file.path(
+        folder_lut,
+        "LF2020_LUT_Height.csv"
+      ),
+      show_col_types = FALSE
+    )
     this_rcl <- this_lut %>%
       dplyr::select(EVH, MidPoint) %>%
       as.matrix()
